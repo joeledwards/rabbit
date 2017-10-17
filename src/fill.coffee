@@ -2,10 +2,45 @@ amqp = require 'amqplib'
 durations = require 'durations'
 uuid = require 'uuid'
 
-url = "amqp://localhost"
-queueName = "bubbles"
+args = require 'yargs'
+  # Queue name
+  .string 'queue'
+  .alias 'queue', 'q'
+  .default 'queue', 'messages'
+  # Number of messages to generate
+  .number 'fillCount'
+  .alias 'fillCount', 'f'
+  .default 'fillCount', 10
+  # RabbitMQ hostname
+  .string 'host'
+  .alias 'host', 'h'
+  .default 'host', 'localhost'
+  # RabbitMQ port
+  .number 'port'
+  .alias 'port', 'p'
+  .default 'port', 5672
+  # Authentication (optional)
+  .string 'username'
+  .alias 'username', 'U'
+  .string 'password'
+  .alias 'password', 'P'
+  # Require both if either is supplied
+  .implies 'username', 'password'
+  .implies 'password', 'username'
+  # Custom v-host
+  .string 'vhost'
+  .alias 'vhost', 'v'
+  # Extract arguments
+  .argv
 
-messageCount = 10
+auth = if args.username? then "#{args.username}:#{args.password}@" else ""
+server = "#{args.host}:#{args.port}"
+vhost = if args.vhost? then "/#{args.vhost}" else ""
+
+url = "amqp://#{auth}#{server}#{vhost}"
+queueName = args.queue
+
+messageCount = args.fillCount
 watch = durations.stopwatch().start()
 
 open = amqp.connect url
