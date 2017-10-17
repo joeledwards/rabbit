@@ -2,11 +2,12 @@
   "name": "rabbit",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dump": "coffee src/dump.coffee",
+    "fill": "coffee src/fill.coffee",
+    "start": "coffee src/rabbit.coffee"
   },
-  "author": "",
+  "author": "Joel Edwards <joel@ed-craft.com>",
   "license": "ISC",
   "dependencies": {
     "amqplib": "^0.5.1",
@@ -15,6 +16,7 @@
     "lodash": "^4.17.4",
     "log-a-log": "^2.0.0",
     "ramda": "^0.25.0",
+    "uuid": "^3.1.0",
     "yargs": "^9.0.1"
   }
 }
