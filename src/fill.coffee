@@ -37,13 +37,19 @@ auth = if args.username? then "#{args.username}:#{args.password}@" else ""
 server = "#{args.host}:#{args.port}"
 vhost = if args.vhost? then "/#{args.vhost}" else ""
 
-url = "amqp://#{auth}#{server}#{vhost}"
+url = (mask=false) ->
+  hasAuth = auth != ''
+  authStr = if mask and hasAuth then '***:***@' else auth
+  "amqp://#{authStr}#{server}#{vhost}"
 queueName = args.queue
 
 messageCount = args.fillCount
 watch = durations.stopwatch().start()
 
-open = amqp.connect url
+console.log "   Broker URL:", url(true)
+console.log "   Queue Name:", queueName
+console.log "    Fill Count", messageCount
+open = amqp.connect url()
 
 open
 .then (conn) ->

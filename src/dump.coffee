@@ -6,6 +6,11 @@ args = require 'yargs'
   .string 'queue'
   .alias 'queue', 'q'
   .default 'queue', 'messages'
+  # Acknowledge messages
+  .boolean 'acknowledge'
+  .alias 'acknowledge', 'ack'
+  .alias 'acknowledge', 'A'
+  .default 'acknowledge', false
   # Duration to listen for messages
   .number 'duration'
   .alias 'duration', 'd'
@@ -32,20 +37,27 @@ args = require 'yargs'
   # Extract arguments
   .argv
 
-auth = if args.username? then "#{args.username}:#{args.password}@" else ""
+auth = if args.username? then "#{args.username}:#{args.password}@" else ''
 server = "#{args.host}:#{args.port}"
-vhost = if args.vhost? then "/#{args.vhost}" else ""
+vhost = if args.vhost? then "/#{args.vhost}" else ''
 
-url = "amqp://#{auth}#{server}#{vhost}"
+url = (mask=false) ->
+  hasAuth = auth != ''
+  authStr = if mask and hasAuth then '***:***@' else auth
+  "amqp://#{authStr}#{server}#{vhost}"
 queueName = args.queue
 
-readDuration = 1000
-shouldAck = false
+readDuration = args.duration
+ackMessages = args.acknowledge
 
 watch = durations.stopwatch().start()
 count = 0
 
-open = amqp.connect url
+console.log "   Broker URL:", url(true)
+console.log "   Queue Name:", queueName
+console.log " Duration (ms)", readDuration
+console.log " Ack Messages:", ackMessages
+open = amqp.connect url()
 
 open
 .then (conn) ->
@@ -76,7 +88,7 @@ open
       count++
       console.log "Received message: #{message.content}"
       #console.log "Received message:", message
-      chan.ack message if shouldAck
+      chan.ack message if ackMessages
 .catch (error) ->
   console.error "Error subscribing to queue '#{queueName}'", error
 
